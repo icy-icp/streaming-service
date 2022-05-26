@@ -31,7 +31,7 @@ module {
         List.size(i) + List.size(o);
     };
 
-    private func tail<V>(l : List.List<V>) : List.List<V> {
+    public func tail<V>(l : List.List<V>) : List.List<V> {
         switch (l) {
             case (null)      { null; };
             case (? (x, xs)) { xs;   };
