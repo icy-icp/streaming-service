@@ -1,51 +1,45 @@
-import Array "mo:base/Array";
-import Hash "mo:base/Hash";
-import HashMap "mo:base/HashMap";
-import List "mo:base/List";
-import Text "mo:base/Text";
 
-import FIFO "./fifo";
-import StrTypes  "./streaming.types";
+  
+import List "mo:base/List";
+
+import TYPES "streaming.types";
 
 module {
-// V - FIFO ITEMS TYPE
-// n - fifo max size
-// m - hashmap init size
+    // A simple FIFO queue.
+    public type TYPES.FIFO<V> = (
+        List.List<V>, // <-  in
+        List.List<V>, // out ->
+    );
 
-       public class Streaming<V>(n: Nat, m:Nat){
-        
-        var streams: StrTypes.Streams<V> = HashMap.HashMap(m, Text.equal, Text.hash);
+    // Pushes an element onto the given queue.
+    public func push<V>(v : V, (i, o) : TYPES.FIFO<V>) : TYPES.FIFO<V> = (?(v, i), o);
 
-        public func addToStream(data: Nat, userId: Text) {
-            let stream = streams.get(userId);
-            switch (stream) {
-                case (stream){
-                    if(FIFO.size(stream) < n){
-                        FIFO.pop(stream)
-                    }
-                };
-                case null{
-
-                };
-            }
-            if(stream != null){
-                if (streams[userId].size() == streamMaxSize){
-                    streams[userId].removeLast();
-                };
-                streams[userId].add(data);
-            } else {
-                createStream(data, userId)
-            }
+    // Pops an element from the given queue.
+    public func pop<V>(q : TYPES.FIFO<V>) : (?V, TYPES.FIFO<V>) {
+        switch (peek(q)) {
+            case (null, _)     { (null, q);          };
+            case (? x, (i, o)) { (?x, (i, tail(o))); }; 
         };
-        
-        private func createStream(data: Nat, userId: Text) {
-            let initStream = Buffer(streamMaxSize);
-            initStream.add(data)
-            streams.put(userId, initStream);
-        };
+    };
 
-        private func deleteStream(userId: Text) {
-            streams.remove(userId);
+    // Peeks at the top element from the given queue.
+    public func peek<V>(q : TYPES.FIFO<V>) : (?V, TYPES.FIFO<V>) {
+        switch (q) {
+            case ((null, null))  { (null, q);                      };
+            case ((xs, null))    { peek((null, List.reverse(xs))); };
+            case ((_, ?(x, xs))) { (?x, q);                        };
         };
-       }
-}
+    };
+
+    // Returns the size of the given queue.
+    public func size<V> ((i, o) : TYPES.FIFO<V>) : Nat {
+        List.size(i) + List.size(o);
+    };
+
+    private func tail<V>(l : List.List<V>) : List.List<V> {
+        switch (l) {
+            case (null)      { null; };
+            case (? (x, xs)) { xs;   };
+        };
+    };
+};

@@ -14,38 +14,37 @@ module {
 
        public class Streaming<V>(n: Nat, m:Nat){
         
-        var streams: StrTypes.Streams<V> = HashMap.HashMap(m, Text.equal, Text.hash);
+        let streams: StrTypes.Streams<V> = HashMap.HashMap(m, Text.equal, Text.hash);
 
-        public func addToStream(data: Nat, userId: Text) {
-            let stream = ?streams.get(userId);
+        public func addToStream(data: V, userId: Text) {
+            let stream: ?StrTypes.FIFO<V> = streams.get(userId);
             switch (stream) {
-                case (stream){
-                    if(FIFO.size(stream) < n){
-                        FIFO.pop(stream)
-                    }
+                case (?stream){
+                    if(FIFO.size<V>(stream) >= n){
+                        let (element, queue) = FIFO.pop(stream);
+                        streams.put(userId, queue);
+                    };
+                    let queue: StrTypes.FIFO<V> = FIFO.push(data,stream);
+                    streams.put(userId, queue);
                 };
-                case null{
-
+                case (null){
+                    let initQueue: StrTypes.FIFO<V> = (null,null);
+                    let queue: StrTypes.FIFO<V> = FIFO.push(data, initQueue);
+                    streams.put(userId, queue);
                 };
-            }
-            if(stream != null){
-                if (streams[userId].size() == streamMaxSize){
-                    streams[userId].removeLast();
-                };
-                streams[userId].add(data);
-            } else {
-                createStream(data, userId)
             }
         };
         
-        private func createStream(data: Nat, userId: Text) {
-            let initStream = Buffer(streamMaxSize);
-            initStream.add(data)
-            streams.put(userId, initStream);
-        };
-
-        private func deleteStream(userId: Text) {
-            streams.remove(userId);
+        public func deleteStream(userId: Text) : Text {
+            switch (streams.get(userId)){
+                case (null){
+                    return "Stream " # userId # "not created";
+                };
+                case(?(q, i)){
+                    streams.delete(userId);
+                    return "Stream " # userId # "deleted";
+                }
+            }
         };
        }
 }
