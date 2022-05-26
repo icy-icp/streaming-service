@@ -7,24 +7,22 @@ import Text "mo:base/Text";
 import FIFO "./fifo";
 import StrTypes  "./streaming.types";
 
-module {
-// V - FIFO ITEMS TYPE
-// n - fifo max size
-// m - hashmap init size
-
-       public class Streaming<V>(n: Nat, m:Nat){
+actor  Streaming{
+        private let n = 5; // fifo max size
+        private let m = 5; // hashmap init size
+        private type V = Nat;
         
         let streams: StrTypes.Streams<V> = HashMap.HashMap(m, Text.equal, Text.hash);
 
-        public func addToStream(data: V, userId: Text) {
+        public shared func addToStream(data: V, userId: Text):() {
             let stream: ?StrTypes.FIFO<V> = streams.get(userId);
             switch (stream) {
-                case (?stream){
-                    if(FIFO.size<V>(stream) >= n){
-                        let (element, queue) = FIFO.pop(stream);
+                case (?q){
+                    if(FIFO.size<V>(q) >= n){
+                        let (element, queue) = FIFO.pop(q);
                         streams.put(userId, queue);
                     };
-                    let queue: StrTypes.FIFO<V> = FIFO.push(data,stream);
+                    let queue: StrTypes.FIFO<V> = FIFO.push(data,q);
                     streams.put(userId, queue);
                 };
                 case (null){
@@ -32,19 +30,34 @@ module {
                     let queue: StrTypes.FIFO<V> = FIFO.push(data, initQueue);
                     streams.put(userId, queue);
                 };
-            }
+            };
         };
         
-        public func deleteStream(userId: Text) : Text {
+        public shared func readStream(userId: Text): async ?V {
+            let stream: ?StrTypes.FIFO<V> = streams.get(userId);
+            switch (stream){
+                case (?q){
+                    switch(FIFO.peek(q)){
+                        case (v, _){
+                            return v;
+                        };
+                    };
+                };
+                case (null){
+                    return null;
+                };
+            };
+        };
+        
+        public shared func deleteStream(userId: Text) : async (Bool, Text) {
             switch (streams.get(userId)){
                 case (null){
-                    return "Stream " # userId # "not created";
+                    return (false, "Stream " # userId # "not created");
                 };
                 case(?(q, i)){
                     streams.delete(userId);
-                    return "Stream " # userId # "deleted";
-                }
-            }
+                    return (true, "Stream " # userId # "deleted");
+                };
+            };
         };
-       }
-}
+};

@@ -5,11 +5,6 @@ import List "mo:base/List";
 import TYPES "streaming.types";
 
 module {
-    // A simple FIFO queue.
-    public type TYPES.FIFO<V> = (
-        List.List<V>, // <-  in
-        List.List<V>, // out ->
-    );
 
     // Pushes an element onto the given queue.
     public func push<V>(v : V, (i, o) : TYPES.FIFO<V>) : TYPES.FIFO<V> = (?(v, i), o);
