@@ -1,24 +1,23 @@
-
-  
 import List "mo:base/List";
 
-import TYPES "streaming.types";
+import TYPES "types";
 
 module {
+    private type Chunk = TYPES.Chunk;
+    private type Queue = TYPES.Queue;
 
-    // Pushes an element onto the given queue.
-    public func push<V>(v : V, (i, o) : TYPES.FIFO<V>) : TYPES.FIFO<V> = (?(v, i), o);
+    public func push(v : Chunk, (i, o) : Queue) : Queue {
+        (?(v, i), o);
+    };
 
-    // Pops an element from the given queue.
-    public func pop<V>(q : TYPES.FIFO<V>) : (?V, TYPES.FIFO<V>) {
+    public func pop(q : Queue) : (?Chunk, Queue) {
         switch (peek(q)) {
             case (null, _)     { (null, q);          };
             case (? x, (i, o)) { (?x, (i, tail(o))); }; 
         };
     };
 
-    // Peeks at the top element from the given queue.
-    public func peek<V>(q : TYPES.FIFO<V>) : (?V, TYPES.FIFO<V>) {
+    public func peek(q : Queue) : (?Chunk, Queue) {
         switch (q) {
             case ((null, null))  { (null, q);                      };
             case ((xs, null))    { peek((null, List.reverse(xs))); };
@@ -26,12 +25,11 @@ module {
         };
     };
 
-    // Returns the size of the given queue.
-    public func size<V> ((i, o) : TYPES.FIFO<V>) : Nat {
+    public func size((i, o) : Queue) : Nat {
         List.size(i) + List.size(o);
     };
 
-    public func tail<V>(l : List.List<V>) : List.List<V> {
+    public func tail(l : List.List<Chunk>) : List.List<Chunk> {
         switch (l) {
             case (null)      { null; };
             case (? (x, xs)) { xs;   };

@@ -1,7 +1,7 @@
 {
   "canisters": {
-    "streaming-service": {
-      "main": "src/streaming.mo",
+    "streaming": {
+      "main": "src/canisters/streaming/main.mo",
       "type": "motoko"
     }
   },
